@@ -5,6 +5,8 @@ namespace LibraryManagementSystem.Data
 {
     public class ApplicationDbContext : IdentityDbContext
     {
+        //public virtual DbSet<Book> Books { get; set; }
+        //public virtual DbSet<ApplicationUser> ApplicationUsers { get; set; }
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
             : base(options)
         {
