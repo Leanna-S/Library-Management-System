@@ -11,13 +11,13 @@
         //fk
         public string RequesterId { get; set; }
 
-        public string LibrarianId { get; set; }
+        public string? LibrarianId { get; set; }
         public int BookId { get; set; }
 
         //nav
         public virtual ApplicationUser Requester { get; set; }
 
         public virtual Book Book { get; set; }
-        public virtual ApplicationUser Librarian { get; set; }
+        public virtual ApplicationUser? Librarian { get; set; }
     }
 }

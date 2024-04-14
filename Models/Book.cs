@@ -26,7 +26,7 @@
 
         public virtual ICollection<BookReturn> BookReturns { get; set; }
 
-        //public virtual Archive? Archive { get; set; }
+        public virtual Archive? Archive { get; set; }
         public virtual ICollection<BookRequest> BookRequests { get; set; }
     }
 }

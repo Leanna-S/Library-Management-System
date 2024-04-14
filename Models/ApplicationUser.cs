@@ -6,7 +6,7 @@ namespace LibraryManagementSystem.Models
     {
         public virtual ICollection<Book> CheckedOutBooks { get; set; }
         public virtual ICollection<BookRequest> LibrarianBookRequests { get; set; }
-        public virtual ICollection<BookRequest> BookRequestsManaged { get; set; }
+        public virtual ICollection<BookRequest> BookRequests { get; set; }
 
         public virtual ICollection<Archive> Archives { get; set; }
         public virtual ICollection<RoleChange> RoleChanges { get; set; }
