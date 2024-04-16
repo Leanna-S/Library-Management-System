@@ -142,7 +142,7 @@ namespace LibraryManagementSystem.Data
 
         private void GenreCreating(ModelBuilder builder)
         {
-            builder.Entity<Author>()
+            builder.Entity<Genre>()
                 .HasKey(a => a.Id);
         }
 

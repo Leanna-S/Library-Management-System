@@ -1,0 +1,83 @@
+﻿@using LibraryManagementSystem.Models.ViewModels
+@model LibraryIndexViewModel
+@using Microsoft.AspNetCore.Identity
+@inject SignInManager<ApplicationUser> SignInManager
+<div class="text-center">
+    <h1>Welcome to the Library!</h1>
+</div>
+
+
+<div class="mt-5 mb-5 mx-auto" style="max-width: 400px;"> 
+    <form method="get" class="form-inline">
+        <div class="input-group">
+            <input type="text" class="form-control" name="searchQuery" placeholder="Search..."  value="@ViewBag.SearchQuery">
+            <div class="input-group-append">
+                <button class="btn btn-outline-dark" type="submit">Search</button>
+            </div>
+        </div>
+    </form>
+</div>
+
+@if (Model.Books.Count <= 0)
+{
+    <p>No books found</p>
+    return;
+}
+
+<table class="table table-striped table-hover">
+    <thead>
+        <tr>
+            <th>Title</th>
+            <th>Author(s)</th>
+            <th>Genre(s)</th>
+            
+            @if (User.IsInRole(Constants.BorrowerRole) || User.IsInRole(Constants.LibrarianRole) || User.IsInRole(Constants.SuperAdminRole))
+            {
+                <th>Status</th>
+            }
+    
+        </tr>
+
+    </thead>
+    <tbody>
+        @foreach (Book b in Model.Books)
+        {
+            <tr>
+                <td>@b.Title</td>
+                <td>@string.Join(", ", b.BookAuthors.Select(ba => ba.Author.Name))</td>
+                <td>@string.Join(", ", b.BookGenres.Select(bg => bg.Genre.Name))</td>
+
+                @if (User.IsInRole(Constants.BorrowerRole) || User.IsInRole(Constants.LibrarianRole) || User.IsInRole(Constants.SuperAdminRole))
+                {
+
+                    if (b.BorrowingUser == null)
+                    {
+                        <td>
+                            Available
+                            
+                            @if (Model.CurrentUserBookRequests.Any(br => br.BookId == b.Id && br.Status == Constants.BookRequestStatus.Pending))
+                            {
+                                <text>| Book request pending</text>
+                            }
+                            else if (User.IsInRole(Constants.BorrowerRole) || User.IsInRole(Constants.SuperAdminRole))
+                            {
+                                <text>| </text>
+                                <a asp-controller="Library" asp-action="CheckoutBook" asp-route-id="@b.Id">Request Book</a>
+                            }
+
+                        </td>
+                    }
+                    else if (b.BorrowingUser.Id == Model.User.Id)
+                    {
+                        <td>You currently have this book</td>
+                    }
+                    else 
+                    {
+                        <td>Book checked out to another user</td>
+                    }
+                }
+            </tr>
+        }
+
+    </tbody>
+</table>
