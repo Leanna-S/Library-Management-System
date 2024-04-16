@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Collections.Generic;
 
 namespace LibraryManagementSystem.Controllers
 {
@@ -19,16 +20,11 @@ namespace LibraryManagementSystem.Controllers
             _userManager = userManager;
         }
 
-        private ApplicationUser? GetUser()
+        [Authorize(Roles = $"{Constants.BorrowerRole},{Constants.SuperAdminRole}")]
+        public IActionResult CancelBookRequest(int id)
         {
             string? userId = _userManager.GetUserId(User);
-            return _context.Users.Include(u => u.BookReturns).FirstOrDefault(u => u.Id == userId);
-        }
-
-        [Authorize(Roles = $"{Constants.BorrowerRole},{Constants.SuperAdminRole}")]
-        public IActionResult CheckoutBook(int id)
-        {
-            ApplicationUser? user = GetUser();
+            ApplicationUser? user = _context.Users.Include(u => u.BookReturns).FirstOrDefault(u => u.Id == userId);
 
             Book? book = _context.Books.FirstOrDefault(b => b.Id == id);
             if (user == null)
@@ -39,20 +35,62 @@ namespace LibraryManagementSystem.Controllers
             {
                 return NotFound();
             }
-            if (book.BorrowingUser != null)
+            if (book.BorrowingUser == user)
             {
-                return Forbid();
+                return Forbid("Can't cancel a book that is already checked out to you");
             }
             if (!User.IsInRole(Constants.BorrowerRole) && !User.IsInRole(Constants.SuperAdminRole))
             {
                 return Forbid();
             }
-            if (book.IsArchived == true)
+            if (book.Archive != null)
             {
-                return Forbid("Book archived, cannot request book");
+                return Forbid("Book archived, cannot change status");
+            }
+            var requests = _context.BookRequests.Where(br => br.RequesterId == user.Id && br.BookId == book.Id && br.Status == Constants.BookRequestStatus.Pending);
+
+            if (!requests.Any())
+            {
+                return NotFound("No request found");
+            }
+            foreach (var request in requests)
+            {
+                request.Status = Constants.BookRequestStatus.Cancelled;
+                request.TimeOfStatusUpdate = DateTime.UtcNow;
+            }
+            _context.SaveChanges();
+            return RedirectToAction(nameof(Index));
+        }
+
+        [Authorize(Roles = $"{Constants.BorrowerRole},{Constants.SuperAdminRole}")]
+        public IActionResult RequestBook(int id)
+        {
+            string? userId = _userManager.GetUserId(User);
+            ApplicationUser? user = _context.Users.Include(u => u.BookReturns).FirstOrDefault(u => u.Id == userId);
+
+            Book? book = _context.Books.FirstOrDefault(b => b.Id == id);
+            if (user == null)
+            {
+                return Forbid();
+            }
+            if (book == null)
+            {
+                return NotFound();
+            }
+            if (!User.IsInRole(Constants.BorrowerRole) && !User.IsInRole(Constants.SuperAdminRole))
+            {
+                return Forbid();
+            }
+            if (book.BorrowingUser == user)
+            {
+                return BadRequest("Can't request book that is already checked out to you");
+            }
+            if (book.Archive != null)
+            {
+                return BadRequest("Book archived, cannot request book");
             }
 
-            if (_context?.BookRequests.Any(br => br.RequesterId == user.Id && br.BookId == book.Id && br.Status == Constants.BookRequestStatus.Pending) ?? false)
+            if (_context.BookRequests.Any(br => br.RequesterId == user.Id && br.BookId == book.Id && br.Status == Constants.BookRequestStatus.Pending))
             {
                 return Conflict("Request already made for book");
             }
@@ -69,23 +107,36 @@ namespace LibraryManagementSystem.Controllers
             return RedirectToAction(nameof(Index));
         }
 
+        [Authorize(Roles = $"{Constants.BorrowerRole},{Constants.SuperAdminRole}")]
+        public IActionResult UserBookRequests()
+        {
+            string? userId = _userManager.GetUserId(User);
+            var bookRequests = _context.BookRequests
+                .Include(br => br.Book)
+                .Include(br => br.Requester)
+                .Where(br => br.Requester.Id == userId).ToList();
+
+            return View(bookRequests);
+        }
+
         [HttpGet]
         public IActionResult Index(string? searchQuery)
         {
             string search = searchQuery?.Trim() ?? string.Empty;
             ViewBag.SearchQuery = search;
-            var viewableBooks = _context.Books.Where(b => b.IsArchived == false)
+            var viewableBooks = _context.Books.Where(b => b.Archive == null)
                 .Where(b => b.Title.Contains(search) || b.BookAuthors.Any(ba => ba.Author.Name.Contains(search)) || b.BookGenres.Any(ba => ba.Genre.Name.Contains(search)) || search == string.Empty)
                 .Include(b => b.BookAuthors)
                 .ThenInclude(a => a.Author)
                 .Include(b => b.BookGenres)
                 .ThenInclude(g => g.Genre)
+                .Include(b => b.Archive)
                 .ToList();
 
             string? userId = _userManager.GetUserId(User);
             var user = _context.Users.Include(u => u.BookRequests).FirstOrDefault(u => u.Id == userId);
 
-            var currentUserBookRequests = user.BookRequests?.ToList();
+            var currentUserBookRequests = user?.BookRequests?.ToList();
 
             LibraryIndexViewModel viewModel = new LibraryIndexViewModel()
             {
