@@ -1,0 +1,41 @@
+﻿@model List<BookRequest>
+
+<div class="text-center">
+    <h1>Book Requests</h1>
+</div>
+
+@if (Model.Count <= 0)
+{
+    <p>No requests found. Try requesting a book in the library!</p>
+    return;
+}
+
+<table class="table table-striped table-hover">
+    <thead>
+        <tr>
+            <th>Status</th>
+            <th>Book</th>
+            <th>Time of request</th>
+            <th>Reason</th>
+        </tr>
+
+    </thead>
+    <tbody>
+        @foreach (BookRequest br in Model)
+        {
+            <tr>
+                <td>@br.Status</td>
+                <td>@br.Book.Title</td>
+                <td>@br.CreatedDate</td>
+                <td>
+                    @if (br.Reason != null)
+                    {
+                        @br.Reason
+                    }
+                </td>
+           
+            </tr>
+        }
+
+    </tbody>
+</table>

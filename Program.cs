@@ -23,11 +23,6 @@ namespace LibraryManagementSystem
                 .AddEntityFrameworkStores<ApplicationDbContext>();
             builder.Services.AddControllersWithViews();
 
-            builder.Services.AddAuthorization(options =>
-            {
-                options.FallbackPolicy = new AuthorizationPolicyBuilder().RequireAuthenticatedUser().Build();
-            });
-
             var app = builder.Build();
 
             // Configure the HTTP request pipeline.
