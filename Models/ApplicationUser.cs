@@ -13,5 +13,6 @@ namespace LibraryManagementSystem.Models
 
         public virtual ICollection<RoleChange> AdminRoleChanges { get; set; }
         public virtual ICollection<BookReturn> BookReturns { get; set; }
+        public virtual ICollection<BookReturn> LibrarianBookReturns { get; set; }
     }
 }

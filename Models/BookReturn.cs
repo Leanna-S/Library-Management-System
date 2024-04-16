@@ -8,11 +8,14 @@
         //fk
         public int BookId { get; set; }
 
+        public string BorrowingUserId { get; set; }
+
         public string LibrarianId { get; set; }
 
         //nav
         public virtual Book Book { get; set; }
 
+        public virtual ApplicationUser BorrowingUser { get; set; }
         public virtual ApplicationUser Librarian { get; set; }
     }
 }

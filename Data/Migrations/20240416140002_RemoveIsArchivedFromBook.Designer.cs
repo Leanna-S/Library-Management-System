@@ -4,6 +4,7 @@ using LibraryManagementSystem.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace LibraryManagementSystem.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240416140002_RemoveIsArchivedFromBook")]
+    partial class RemoveIsArchivedFromBook
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -203,9 +206,6 @@ namespace LibraryManagementSystem.Data.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<int?>("ArchiveId")
-                        .HasColumnType("int");
-
                     b.Property<int>("BookId")
                         .HasColumnType("int");
 
@@ -230,8 +230,6 @@ namespace LibraryManagementSystem.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("ArchiveId");
-
                     b.HasIndex("BookId");
 
                     b.HasIndex("LibrarianId");
@@ -252,10 +250,6 @@ namespace LibraryManagementSystem.Data.Migrations
                     b.Property<int>("BookId")
                         .HasColumnType("int");
 
-                    b.Property<string>("BorrowingUserId")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
-
                     b.Property<string>("LibrarianId")
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
@@ -266,8 +260,6 @@ namespace LibraryManagementSystem.Data.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("BookId");
-
-                    b.HasIndex("BorrowingUserId");
 
                     b.HasIndex("LibrarianId");
 
@@ -531,10 +523,6 @@ namespace LibraryManagementSystem.Data.Migrations
 
             modelBuilder.Entity("LibraryManagementSystem.Models.BookRequest", b =>
                 {
-                    b.HasOne("LibraryManagementSystem.Models.Archive", "Archive")
-                        .WithMany("BookRequestsAffected")
-                        .HasForeignKey("ArchiveId");
-
                     b.HasOne("LibraryManagementSystem.Models.Book", "Book")
                         .WithMany("BookRequests")
                         .HasForeignKey("BookId")
@@ -551,8 +539,6 @@ namespace LibraryManagementSystem.Data.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("Archive");
-
                     b.Navigation("Book");
 
                     b.Navigation("Librarian");
@@ -568,21 +554,13 @@ namespace LibraryManagementSystem.Data.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("LibraryManagementSystem.Models.ApplicationUser", "BorrowingUser")
+                    b.HasOne("LibraryManagementSystem.Models.ApplicationUser", "Librarian")
                         .WithMany("BookReturns")
-                        .HasForeignKey("BorrowingUserId")
+                        .HasForeignKey("LibrarianId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("LibraryManagementSystem.Models.ApplicationUser", "Librarian")
-                        .WithMany("LibrarianBookReturns")
-                        .HasForeignKey("LibrarianId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired();
-
                     b.Navigation("Book");
-
-                    b.Navigation("BorrowingUser");
 
                     b.Navigation("Librarian");
                 });
@@ -671,14 +649,7 @@ namespace LibraryManagementSystem.Data.Migrations
 
                     b.Navigation("LibrarianBookRequests");
 
-                    b.Navigation("LibrarianBookReturns");
-
                     b.Navigation("RoleChanges");
-                });
-
-            modelBuilder.Entity("LibraryManagementSystem.Models.Archive", b =>
-                {
-                    b.Navigation("BookRequestsAffected");
                 });
 
             modelBuilder.Entity("LibraryManagementSystem.Models.Author", b =>

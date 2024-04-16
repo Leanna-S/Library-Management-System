@@ -90,7 +90,6 @@ namespace LibraryManagementSystem.Data
                 {
                     Title = $"Book {i}",
                     Summary = $"Book {i} summary",
-                    IsArchived = false,
                     Contents = $"Book {i} contents"
                 };
                 context.Books.Add(book);

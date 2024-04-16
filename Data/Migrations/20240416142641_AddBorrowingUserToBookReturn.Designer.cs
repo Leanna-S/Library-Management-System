@@ -4,6 +4,7 @@ using LibraryManagementSystem.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace LibraryManagementSystem.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240416142641_AddBorrowingUserToBookReturn")]
+    partial class AddBorrowingUserToBookReturn
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -203,9 +206,6 @@ namespace LibraryManagementSystem.Data.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<int?>("ArchiveId")
-                        .HasColumnType("int");
-
                     b.Property<int>("BookId")
                         .HasColumnType("int");
 
@@ -229,8 +229,6 @@ namespace LibraryManagementSystem.Data.Migrations
                         .HasColumnType("datetime2");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("ArchiveId");
 
                     b.HasIndex("BookId");
 
@@ -531,10 +529,6 @@ namespace LibraryManagementSystem.Data.Migrations
 
             modelBuilder.Entity("LibraryManagementSystem.Models.BookRequest", b =>
                 {
-                    b.HasOne("LibraryManagementSystem.Models.Archive", "Archive")
-                        .WithMany("BookRequestsAffected")
-                        .HasForeignKey("ArchiveId");
-
                     b.HasOne("LibraryManagementSystem.Models.Book", "Book")
                         .WithMany("BookRequests")
                         .HasForeignKey("BookId")
@@ -550,8 +544,6 @@ namespace LibraryManagementSystem.Data.Migrations
                         .HasForeignKey("RequesterId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
-                    b.Navigation("Archive");
 
                     b.Navigation("Book");
 
@@ -674,11 +666,6 @@ namespace LibraryManagementSystem.Data.Migrations
                     b.Navigation("LibrarianBookReturns");
 
                     b.Navigation("RoleChanges");
-                });
-
-            modelBuilder.Entity("LibraryManagementSystem.Models.Archive", b =>
-                {
-                    b.Navigation("BookRequestsAffected");
                 });
 
             modelBuilder.Entity("LibraryManagementSystem.Models.Author", b =>

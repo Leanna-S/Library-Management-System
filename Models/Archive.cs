@@ -13,6 +13,8 @@
         //nav
         public virtual Book Book { get; set; }
 
+        public virtual ICollection<BookRequest> BookRequestsAffected { get; set; }
+
         public virtual ApplicationUser Librarian { get; set; }
     }
 }

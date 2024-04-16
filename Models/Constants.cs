@@ -12,6 +12,7 @@
             Approved,
             Denied,
             Pending,
+            Cancelled,
         }
 
         public enum RoleChangeType

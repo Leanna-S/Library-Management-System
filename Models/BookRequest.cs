@@ -14,9 +14,12 @@
         public string? LibrarianId { get; set; }
         public int BookId { get; set; }
 
+        public int? ArchiveId { get; set; }
+
         //nav
         public virtual ApplicationUser Requester { get; set; }
 
+        public virtual Archive? Archive { get; set; }
         public virtual Book Book { get; set; }
         public virtual ApplicationUser? Librarian { get; set; }
     }

@@ -9,8 +9,6 @@
 
         public string Summary { get; set; }
 
-        public bool IsArchived { get; set; }
-
         public string Contents { get; set; }
 
         //fk properties
