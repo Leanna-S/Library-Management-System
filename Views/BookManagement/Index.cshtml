@@ -1,0 +1,76 @@
+﻿@model List<Book>
+
+<div class="text-center">
+    <h1>Book Management</h1>
+</div>
+
+@if (Model.Count <= 0)
+{
+    <p>No books found.</p>
+    return;
+}
+
+
+<div class="row justify-content-end">
+    <div class="col-auto">
+        <a asp-controller="BookManagement" asp-action="AddBook" class="btn btn-outline-dark">Add Book</a>
+    </div>
+</div>
+
+
+
+
+
+
+<table class="table table-striped table-hover">
+    <thead>
+        <tr>
+            <th>Title</th>
+            <th>Author(s)</th>
+            <th>Genre(s)</th>
+            <th>Status</th>
+            <th>Action(s)</th>
+        </tr>
+
+    </thead>
+    <tbody>
+        @foreach (Book b in Model)
+        {
+            <tr>
+                <td>@b.Title</td>
+                <td>@string.Join(", ", b.BookAuthors.Select(ba => ba.Author.Name))</td>
+                <td>@string.Join(", ", b.BookGenres.Select(bg => bg.Genre.Name))</td>
+                <td>
+
+                    @if (b.Archive != null)
+                    {
+                        <text>Archived</text>
+                    }
+                    else if (b.BorrowingUser == null)
+                    {
+                        <text>Available</text>
+                    }
+                    else
+                    {
+                        <text>Checked out to @b.BorrowingUser.UserName</text>
+                    }
+                </td>
+                <td>
+                    @if (b.BorrowingUser != null)
+                    {
+                        <a asp-controller="BookManagement" asp-action="ReturnBook" asp-route-id="@b.Id">Return Book</a>
+                    }
+                    else if (b.Archive == null)
+                    {
+                        <a asp-controller="BookManagement" asp-action="ArchiveBook" asp-route-id="@b.Id">Archive Book</a>
+                    }
+                    else if (User.IsInRole(Constants.SuperAdminRole) && b.Archive != null)
+                    {
+                        <a asp-controller="BookManagement" asp-action="UnarchiveBook" asp-route-id="@b.Id">Unarchive Book</a>
+                    }
+                </td>
+            </tr>
+        }
+
+    </tbody>
+</table>

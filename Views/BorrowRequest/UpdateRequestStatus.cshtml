@@ -1,0 +1,30 @@
+﻿@model BookRequest
+
+<div class="text-center">
+    <h1>Update Status</h1>
+</div>
+
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <form method="get" class="form-horizontal">
+                <div class="form-group mb-3">
+                    <label>Please select status</label>
+                    <select class="form-control" name="status">
+                        <option value="">--Please choose an option--</option>
+                        <option value="@Constants.BookRequestStatus.Approved">Approved</option>
+                        <option value="@Constants.BookRequestStatus.Denied">Denied</option>
+                    </select>
+                </div>
+                <div class="form-group mb-3">
+                    <label>Reason</label>
+                    <input type="text" class="form-control" name="reason" placeholder="Optional: Add a reason" />
+                    <input type="hidden" name="id" value="@Model.Id" />
+                </div>
+                <div class="form-group text-center">
+                    <button class="btn btn-outline-dark" asp-controller="BorrowRequest" asp-action="ChangeStatus">Click To Submit</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
