@@ -57,9 +57,30 @@ namespace LibraryManagementSystem.Controllers
             {
                 request.Status = Constants.BookRequestStatus.Cancelled;
                 request.TimeOfStatusUpdate = DateTime.UtcNow;
+                request.Reason = "User cancelled request";
             }
             _context.SaveChanges();
             return RedirectToAction(nameof(Index));
+        }
+
+        public IActionResult BookContent(int id)
+        {
+            string? userId = _userManager.GetUserId(User);
+            ApplicationUser? user = _context.Users.Include(u => u.BookReturns).FirstOrDefault(u => u.Id == userId);
+            Book? book = _context.Books.Include(b => b.BorrowingUser).FirstOrDefault(b => b.Id == id);
+            if (book == null)
+            {
+                return NotFound();
+            }
+            if (user == null)
+            {
+                return NotFound();
+            }
+            if (user != book.BorrowingUser && !User.IsInRole(Constants.SuperAdminRole))
+            {
+                return Forbid();
+            }
+            return View(book);
         }
 
         [Authorize(Roles = $"{Constants.BorrowerRole},{Constants.SuperAdminRole}")]
@@ -126,6 +147,7 @@ namespace LibraryManagementSystem.Controllers
             ViewBag.SearchQuery = search;
             var viewableBooks = _context.Books.Where(b => b.Archive == null)
                 .Where(b => b.Title.Contains(search) || b.BookAuthors.Any(ba => ba.Author.Name.Contains(search)) || b.BookGenres.Any(ba => ba.Genre.Name.Contains(search)) || search == string.Empty)
+                .Include(b => b.BorrowingUser)
                 .Include(b => b.BookAuthors)
                 .ThenInclude(a => a.Author)
                 .Include(b => b.BookGenres)

@@ -34,6 +34,7 @@
             @if (User.IsInRole(Constants.BorrowerRole) || User.IsInRole(Constants.LibrarianRole) || User.IsInRole(Constants.SuperAdminRole))
             {
                 <th>Status</th>
+                <th>Action(s)</th>
             }
     
         </tr>
@@ -51,35 +52,43 @@
                 {
                     <td>
 
-              
-                    @if (b.BorrowingUser == null)
-                    {
-                        <text>Available</text>
-                    }
-                    else if (b.BorrowingUser.Id == Model.User.Id)
-                    {
-                        <text>You currently have this book</text>
-                        continue;
-            
-                    }
-                    else 
-                    {
-                        <text>Book checked out to another user</text>
-                    }
-                    @if (User.IsInRole(Constants.BorrowerRole) || User.IsInRole(Constants.SuperAdminRole))
-                    {
-                        <text> | </text>
-                        if (Model.CurrentUserBookRequests.Any(br => br.BookId == b.Id && br.Status == Constants.BookRequestStatus.Pending))
+
+                        @if (b.BorrowingUser == null)
+                        {
+                            <text>Available</text>
+                        }
+                        else if (b.BorrowingUser.Id == Model.User.Id)
+                        {
+                            <text>You currently have this book</text>
+                        }
+                        else if (Model.CurrentUserBookRequests.Any(br => br.BookId == b.Id && br.Status == Constants.BookRequestStatus.Pending))
                         {
                             <text>Book request pending | </text>
-                            <a asp-controller="Library" asp-action="CancelBookRequest" asp-route-id="@b.Id">Cancel Book Request</a>
                         }
-                        else 
+                        else
                         {
-                            <a asp-controller="Library" asp-action="RequestBook" asp-route-id="@b.Id">Request Book</a>
+                            <text>Book checked out to another user</text>
                         }
-                    }
 
+
+                    </td>
+                    <td>
+                        @if (User.IsInRole(Constants.BorrowerRole) || User.IsInRole(Constants.SuperAdminRole))
+                        {
+                            if (Model.CurrentUserBookRequests.Any(br => br.BookId == b.Id && br.Status == Constants.BookRequestStatus.Pending))
+                            {
+                                <a asp-controller="Library" asp-action="CancelBookRequest" asp-route-id="@b.Id">Cancel Book Request</a>
+                            }
+                            else if (b.BorrowingUser?.Id != Model.User.Id)
+                            {
+                                <a asp-controller="Library" asp-action="RequestBook" asp-route-id="@b.Id">Request Book</a>
+                            }
+              
+                            if (User.IsInRole(Constants.SuperAdminRole) || b.BorrowingUser?.Id == Model.User.Id)
+                            {
+                                <a asp-controller="Library" asp-action="BookContent" asp-route-id="@b.Id">View content</a>
+                            }
+                        }
                     </td>
                 }
             </tr>
