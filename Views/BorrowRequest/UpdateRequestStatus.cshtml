@@ -7,10 +7,10 @@
 <div class="container">
     <div class="row justify-content-center">
         <div class="col-md-6">
-            <form method="get" class="form-horizontal">
+            <form method="post" class="form-horizontal">
                 <div class="form-group mb-3">
                     <label>Please select status</label>
-                    <select class="form-control" name="status">
+                    <select class="form-control" name="status" required>
                         <option value="">--Please choose an option--</option>
                         <option value="@Constants.BookRequestStatus.Approved">Approved</option>
                         <option value="@Constants.BookRequestStatus.Denied">Denied</option>

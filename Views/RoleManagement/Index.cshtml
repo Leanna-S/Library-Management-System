@@ -1,0 +1,34 @@
+﻿@using LibraryManagementSystem.Models.ViewModels
+@model List<RoleManagementIndexViewModel>
+
+<table class="table table-striped table-hover">
+    <thead>
+        <tr>
+            <th>Id</th>
+            <th>Username</th>
+            <th>Roles</th>
+            <th>Action(s)</th>
+
+        </tr>
+
+    </thead>
+    <tbody>
+        @foreach (RoleManagementIndexViewModel vm in Model)
+        {
+            <tr>
+                <td>@vm.User.Id</td>
+                <td>@vm.User.UserName</td>
+                <td>@string.Join(", ", vm.Roles)</td>
+                <td>
+
+                    @if ((!vm.Roles.Contains(Constants.AdminRole) && !vm.Roles.Contains(Constants.SuperAdminRole)) || User.IsInRole(Constants.SuperAdminRole))
+                    {
+                        <a asp-controller="RoleManagement" asp-action="AddRole" asp-route-id="@vm.User.Id">Add Role</a>
+                        <text> | </text>
+                        <a asp-controller="RoleManagement" asp-action="RemoveRole" asp-route-id="@vm.User.Id">Remove Role</a>
+                    } 
+            </tr>
+        }
+
+    </tbody>
+</table>
