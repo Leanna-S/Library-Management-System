@@ -1,0 +1,43 @@
+﻿@model List<BookRequest>
+
+<div class="text-center">
+    <h1>Book Requests</h1>
+</div>
+
+
+<table class="table table-striped table-hover">
+    <thead>
+        <tr>
+            <th>Status</th>
+            <th>Book</th>
+            <th>Requester</th>
+            <th>Time of request</th>
+  
+            <th>Librarian</th>
+            <th>Reason</th>
+            <th>Time of Status Update</th>
+        </tr>
+
+    </thead>
+    <tbody>
+        @foreach (BookRequest br in Model)
+        {
+            <tr>
+                <td>@br.Status</td>
+                <td>@br.Book.Title</td>
+                <td>@br.Requester.UserName</td>
+                <td>@br.CreatedDate</td>
+                <td>@(br.Librarian?.UserName ?? "")</td>
+                <td>
+                    @if (br.Reason != null)
+                    {
+                        @br.Reason
+                    }
+                </td>
+                <td>@br.TimeOfStatusUpdate</td>
+                
+            </tr>
+        }
+
+    </tbody>
+</table>

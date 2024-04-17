@@ -48,6 +48,12 @@
                                 <a class="nav-link text-dark" asp-area="" asp-controller="RoleManagement" asp-action="Index">Role Management</a>
                             </li>
                         }
+                        @if (User.IsInRole(Constants.SuperAdminRole))
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link text-dark" asp-area="" asp-controller="Tracking" asp-action="Index">Tracking</a>
+                            </li>
+                        }
 
                     </ul>
                     <partial name="_LoginPartial" />

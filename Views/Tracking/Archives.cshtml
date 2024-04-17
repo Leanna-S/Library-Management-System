@@ -1,0 +1,28 @@
+﻿@model List<Archive>
+<div class="text-center">
+    <h1>Book Returns</h1>
+</div>
+
+<table class="table table-striped table-hover">
+    <thead>
+        <tr>
+            <th>Book</th>
+            <th>Librarian</th>
+            <th>Time of Archive</th>
+            <th>Ids of Book Requests Affected</th>
+        </tr>
+
+    </thead>
+    <tbody>
+        @foreach (Archive a in Model)
+        {
+            <tr>
+                <td>@a.Book.Title</td>
+                <td>@a.Librarian.UserName</td>
+                <td>@a.TimeOfArchive</td>
+                <td>@string.Join(", ", a.BookRequestsAffected.Select(br => br.Id))</td>
+            </tr>
+        }
+
+    </tbody>
+</table>

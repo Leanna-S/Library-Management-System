@@ -1,0 +1,28 @@
+﻿@model List<BookReturn>
+<div class="text-center">
+    <h1>Book Returns</h1>
+</div>
+
+<table class="table table-striped table-hover">
+    <thead>
+        <tr>
+            <th>Book</th>
+            <th>Borrowing User</th>
+            <th>Time of Return</th>
+            <th>Librarian</th>
+        </tr>
+
+    </thead>
+    <tbody>
+        @foreach (BookReturn br in Model)
+        {
+            <tr>
+                <td>@br.Book.Title</td>
+                <td>@br.BorrowingUser.UserName</td>
+                <td>@br.TimeOfReturn</td>
+                <td>@br.Librarian.UserName</td>
+            </tr>
+        }
+
+    </tbody>
+</table>
