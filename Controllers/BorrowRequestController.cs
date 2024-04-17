@@ -29,17 +29,17 @@ namespace LibraryManagementSystem.Controllers
                 .ToList();
             return View(bookRequests);
         }
-
+        [HttpPost]
         public IActionResult ChangeStatus(Constants.BookRequestStatus status, int id, string? reason)
         {
             var bookRequest = _context.BookRequests
                 .Include(br => br.Requester)
                 .Include(br => br.Book)
                 .FirstOrDefault(br => br.Id == id);
-            string? userId = _userManager.GetUserId(User);
-            ApplicationUser? user = _context.Users.Include(u => u.BookReturns).FirstOrDefault(u => u.Id == userId);
+            string? librarianId = _userManager.GetUserId(User);
+            ApplicationUser? librarian = _context.Users.Include(u => u.BookReturns).FirstOrDefault(u => u.Id == librarianId);
 
-            if (user == null)
+            if (librarian == null)
             {
                 return Forbid();
             }
@@ -71,18 +71,17 @@ namespace LibraryManagementSystem.Controllers
             }
             bookRequest.TimeOfStatusUpdate = DateTime.UtcNow;
             bookRequest.Status = status;
-            bookRequest.Librarian = user;
+            bookRequest.Librarian = librarian;
             bookRequest.Reason = reason;
             if (status == Constants.BookRequestStatus.Approved)
             {
-                bookRequest.Book.BorrowingUser = user;
+                bookRequest.Book.BorrowingUser = bookRequest.Requester;
             }
 
             _context.SaveChanges();
             return RedirectToAction(nameof(Index));
         }
 
-        [HttpGet]
         public IActionResult UpdateRequestStatus(int id)
         {
             var bookRequest = _context.BookRequests.FirstOrDefault(br => br.Id == id);

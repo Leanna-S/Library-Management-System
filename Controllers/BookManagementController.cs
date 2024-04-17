@@ -37,13 +37,13 @@ namespace LibraryManagementSystem.Controllers
         public IActionResult ReturnBook(int id)
         {
             var book = _context.Books.Where(b => b.Id == id).FirstOrDefault();
-            string? userId = _userManager.GetUserId(User);
-            ApplicationUser? user = _context.Users.Include(u => u.BookReturns).FirstOrDefault(u => u.Id == userId);
+            string? librarianId = _userManager.GetUserId(User);
+            ApplicationUser? librarian = _context.Users.Include(u => u.BookReturns).FirstOrDefault(u => u.Id == librarianId);
             if (book == null)
             {
                 return NotFound();
             }
-            if (user == null)
+            if (librarian == null)
             {
                 return Forbid();
             }
@@ -59,7 +59,7 @@ namespace LibraryManagementSystem.Controllers
             BookReturn bookReturn = new BookReturn()
             {
                 Book = book,
-                Librarian = user,
+                Librarian = librarian,
                 BorrowingUser = book.BorrowingUser,
                 TimeOfReturn = DateTime.UtcNow,
             };
@@ -72,9 +72,9 @@ namespace LibraryManagementSystem.Controllers
 
         public IActionResult CreateBook(string title, string summary, string contents, int[] genres, int[] authors)
         {
-            string? userId = _userManager.GetUserId(User);
-            ApplicationUser? user = _context.Users.Include(u => u.BookReturns).FirstOrDefault(u => u.Id == userId);
-            if (user == null)
+            string? librarianId = _userManager.GetUserId(User);
+            ApplicationUser? librarian = _context.Users.Include(u => u.BookReturns).FirstOrDefault(u => u.Id == librarianId);
+            if (librarian == null)
             {
                 return Forbid();
             }
@@ -138,13 +138,13 @@ namespace LibraryManagementSystem.Controllers
                 .Include(b => b.BorrowingUser)
                 .Where(b => b.Id == id)
                 .FirstOrDefault();
-            string? userId = _userManager.GetUserId(User);
-            ApplicationUser? user = _context.Users.Include(u => u.BookReturns).FirstOrDefault(u => u.Id == userId);
+            string? librarianId = _userManager.GetUserId(User);
+            ApplicationUser? librarian = _context.Users.Include(u => u.BookReturns).FirstOrDefault(u => u.Id == librarianId);
             if (book == null)
             {
                 return NotFound();
             }
-            if (user == null)
+            if (librarian == null)
             {
                 return Forbid();
             }
@@ -164,7 +164,7 @@ namespace LibraryManagementSystem.Controllers
             Archive archive = new Archive()
             {
                 TimeOfArchive = DateTime.UtcNow,
-                Librarian = user,
+                Librarian = librarian,
                 BookRequestsAffected = book.BookRequests,
                 Book = book,
             };
@@ -175,7 +175,7 @@ namespace LibraryManagementSystem.Controllers
             {
                 br.Status = Constants.BookRequestStatus.Denied;
                 br.TimeOfStatusUpdate = DateTime.UtcNow;
-                br.Librarian = user;
+                br.Librarian = librarian;
                 br.Reason = "Book archived";
                 br.Archive = archive;
             }
@@ -191,17 +191,17 @@ namespace LibraryManagementSystem.Controllers
                 .Include(b => b.Archive)
                 .Where(b => b.Id == id)
                 .FirstOrDefault();
-            string? userId = _userManager.GetUserId(User);
-            ApplicationUser? user = _context.Users.Include(u => u.BookReturns).FirstOrDefault(u => u.Id == userId);
+            string? superAdminId = _userManager.GetUserId(User);
+            ApplicationUser? superAdmin = _context.Users.Include(u => u.BookReturns).FirstOrDefault(u => u.Id == superAdminId);
             if (book == null)
             {
                 return NotFound();
             }
-            if (user == null)
+            if (superAdmin == null)
             {
                 return Forbid();
             }
-            if (!User.IsInRole(Constants.LibrarianRole) && !User.IsInRole(Constants.SuperAdminRole))
+            if (!User.IsInRole(Constants.SuperAdminRole))
             {
                 return Forbid();
             }
