@@ -1,9 +1,12 @@
-﻿using LibraryManagementSystem.Data;
+﻿using Humanizer;
+using LibraryManagementSystem.Data;
 using LibraryManagementSystem.Models;
+using LibraryManagementSystem.Models.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Globalization;
 
 namespace LibraryManagementSystem.Controllers
 {
@@ -12,6 +15,8 @@ namespace LibraryManagementSystem.Controllers
     {
         private readonly ApplicationDbContext _context;
         private readonly UserManager<ApplicationUser> _userManager;
+
+        // Librarians would like to be able to sort and/or filter the list of requests by status, date, user, or book.
 
         public BorrowRequestController(ApplicationDbContext context, UserManager<ApplicationUser> userManager)
         {
@@ -27,8 +32,50 @@ namespace LibraryManagementSystem.Controllers
                 .Include(br => br.Requester)
                 .Include(b => b.Archive)
                 .ToList();
-            return View(bookRequests);
+            var statuses = Enum.GetValues<Constants.BookRequestStatus>();
+            BorrowRequestIndexViewModel vm = new()
+            {
+                BookRequests = bookRequests,
+                Statuses = statuses
+            };
+            return View(vm);
         }
+
+        [HttpPost]
+        public IActionResult Index(Constants.BookRequestStatus? status, string? searchQuery, DateTime? startDate, DateTime? endDate)
+        {
+            string? userId = _userManager.GetUserId(User);
+            var bookRequests = _context.BookRequests
+                .Include(br => br.Book)
+                .Include(br => br.Requester)
+                .Include(br => br.Archive)
+                .Where(br => status == null || br.Status == status)
+                .Where(br => searchQuery == null
+                || br.Requester.UserName!.Contains(searchQuery)
+                || br.Book.Title.Contains(searchQuery))
+                .Where(br => startDate == null || br.CreatedDate >= startDate)
+                .Where(br => endDate == null || br.CreatedDate <= endDate)
+                .ToList();
+            var statuses = Enum.GetValues<Constants.BookRequestStatus>();
+            BorrowRequestIndexViewModel vm = new()
+            {
+                BookRequests = bookRequests,
+                Statuses = statuses
+            };
+            ViewBag.Status = status;
+            ViewBag.SearchQuery = searchQuery;
+            if (startDate != null)
+            {
+                ViewBag.StartDate = startDate.Value.ToString("yyyy-MM-dd");
+            }
+            if (endDate != null)
+            {
+                ViewBag.EndDate = endDate.Value.ToString("yyyy-MM-dd");
+            }
+
+            return View(vm);
+        }
+
         [HttpPost]
         public IActionResult ChangeStatus(Constants.BookRequestStatus status, int id, string? reason)
         {

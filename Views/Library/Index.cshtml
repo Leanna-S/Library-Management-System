@@ -1,7 +1,7 @@
 ﻿@using LibraryManagementSystem.Models.ViewModels
 @model LibraryIndexViewModel
 @using Microsoft.AspNetCore.Identity
-@inject SignInManager<ApplicationUser> SignInManager
+
 <div class="text-center">
     <h1>Welcome to the Library!</h1>
 </div>
@@ -57,7 +57,7 @@
                         {
                             <text>Available</text>
                         }
-                        else if (b.BorrowingUser.Id == Model.User.Id)
+                        else if (b.BorrowingUser.Id == Model.User?.Id)
                         {
                             <text>You currently have this book</text>
                         }
@@ -79,15 +79,20 @@
                             {
                                 <a asp-controller="Library" asp-action="CancelBookRequest" asp-route-id="@b.Id">Cancel Book Request</a>
                             }
-                            else if (b.BorrowingUser?.Id != Model.User.Id)
+                            else if (b.BorrowingUser?.Id != Model.User?.Id)
                             {
                                 <a asp-controller="Library" asp-action="RequestBook" asp-route-id="@b.Id">Request Book</a>
                             }
-              
-                            if (User.IsInRole(Constants.SuperAdminRole) || b.BorrowingUser?.Id == Model.User.Id)
+                            if (User.IsInRole(Constants.SuperAdminRole) || b.BorrowingUser?.Id == Model.User?.Id)
                             {
+                                if (User.IsInRole(Constants.SuperAdminRole))
+                                {
+                                    <text> | </text>
+                                }
                                 <a asp-controller="Library" asp-action="BookContent" asp-route-id="@b.Id">View content</a>
                             }
+              
+           
                         }
                     </td>
                 }

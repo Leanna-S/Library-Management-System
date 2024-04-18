@@ -143,10 +143,8 @@ namespace LibraryManagementSystem.Controllers
         [HttpGet]
         public IActionResult Index(string? searchQuery)
         {
-            string search = searchQuery?.Trim() ?? string.Empty;
-            ViewBag.SearchQuery = search;
             var viewableBooks = _context.Books.Where(b => b.Archive == null)
-                .Where(b => b.Title.Contains(search) || b.BookAuthors.Any(ba => ba.Author.Name.Contains(search)) || b.BookGenres.Any(ba => ba.Genre.Name.Contains(search)) || search == string.Empty)
+                .Where(b => searchQuery == null || b.Title.Contains(searchQuery) || b.BookAuthors.Any(ba => ba.Author.Name.Contains(searchQuery)) || b.BookGenres.Any(ba => ba.Genre.Name.Contains(searchQuery)))
                 .Include(b => b.BorrowingUser)
                 .Include(b => b.BookAuthors)
                 .ThenInclude(a => a.Author)
@@ -154,7 +152,7 @@ namespace LibraryManagementSystem.Controllers
                 .ThenInclude(g => g.Genre)
                 .Include(b => b.Archive)
                 .ToList();
-
+            ViewBag.SearchQuery = searchQuery;
             string? userId = _userManager.GetUserId(User);
             var user = _context.Users.Include(u => u.BookRequests).FirstOrDefault(u => u.Id == userId);
 

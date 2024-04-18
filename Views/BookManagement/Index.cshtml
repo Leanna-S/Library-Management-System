@@ -18,7 +18,16 @@
 </div>
 
 
-
+<div class="mt-5 mb-5 mx-auto" style="max-width: 400px;">
+    <form method="get" class="form-inline">
+        <div class="input-group">
+            <input type="text" class="form-control" name="searchQuery" placeholder="Search..." value="@ViewBag.SearchQuery">
+            <div class="input-group-append">
+                <button class="btn btn-outline-dark" type="submit">Search</button>
+            </div>
+        </div>
+    </form>
+</div>
 
 
 
@@ -30,6 +39,7 @@
             <th>Genre(s)</th>
             <th>Status</th>
             <th>Action(s)</th>
+            <th>History</th>
         </tr>
 
     </thead>
@@ -68,6 +78,9 @@
                     {
                         <a asp-controller="BookManagement" asp-action="UnarchiveBook" asp-route-id="@b.Id">Unarchive Book</a>
                     }
+                </td>
+                <td>
+                    <a asp-controller="BookManagement" asp-action="History" asp-route-id="@b.Id">History</a>
                 </td>
             </tr>
         }

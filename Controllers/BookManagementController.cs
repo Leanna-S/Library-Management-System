@@ -20,15 +20,17 @@ namespace LibraryManagementSystem.Controllers
             _userManager = userManager;
         }
 
-        //shows all books, has options like return and archive, add button in corner, (un-archive hidden, visible to only SuperAdmins)
-        public IActionResult Index()
+        [HttpGet]
+        public IActionResult Index(string searchQuery)
         {
-            var viewableBooks = _context.Books
+            ViewBag.SearchQuery = searchQuery;
+            var viewableBooks = _context.Books.Where(b => b.Archive == null)
+                .Where(b => b.Title.Contains(searchQuery) || b.BookAuthors.Any(ba => ba.Author.Name.Contains(searchQuery)) || b.BookGenres.Any(ba => ba.Genre.Name.Contains(searchQuery)) || searchQuery == null)
+                .Include(b => b.BorrowingUser)
                 .Include(b => b.BookAuthors)
                 .ThenInclude(a => a.Author)
                 .Include(b => b.BookGenres)
                 .ThenInclude(g => g.Genre)
-                .Include(b => b.BorrowingUser)
                 .Include(b => b.Archive)
                 .ToList();
             return View(viewableBooks);
@@ -217,6 +219,17 @@ namespace LibraryManagementSystem.Controllers
             _context.Archives.Remove(book.Archive);
             _context.SaveChanges();
             return RedirectToAction(nameof(Index));
+        }
+
+        public IActionResult History(int id)
+        {
+            var book = _context.Books
+                .Include(b => b.BookReturns)
+                .ThenInclude(br => br.BorrowingUser)
+                .Include(b => b.BookRequests)
+                .ThenInclude(br => br.Requester)
+                .FirstOrDefault(b => b.Id == id);
+            return View(book);
         }
     }
 }

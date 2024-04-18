@@ -84,7 +84,6 @@ namespace LibraryManagementSystem.Controllers
             _context.RoleChanges.Add(roleChange);
             _context.SaveChanges();
 
-
             return RedirectToAction(nameof(Index));
         }
 
@@ -96,7 +95,7 @@ namespace LibraryManagementSystem.Controllers
             {
                 return NotFound("User not found");
             }
-            
+
             RoleManagementIndexViewModel vm = new()
             {
                 User = user,
@@ -114,7 +113,10 @@ namespace LibraryManagementSystem.Controllers
                 return NotFound("User not found");
             }
             var userRoles = await _userManager.GetRolesAsync(user);
-            var rolesUserNotIn = _roleManager.Roles.Where(r => !userRoles.Contains(r.Name)).Select(r => r.Name.ToString()).ToList();
+            var rolesUserNotIn = _roleManager.Roles
+                .Where(r => r.Name != null && !userRoles.Contains(r.Name))
+                .Select(r => r.Name ?? string.Empty)
+                .ToList();
             RoleManagementIndexViewModel vm = new()
             {
                 User = user,
@@ -162,7 +164,7 @@ namespace LibraryManagementSystem.Controllers
             };
             _context.RoleChanges.Add(roleChange);
             _context.SaveChanges();
-            
+
             return RedirectToAction(nameof(Index));
         }
     }

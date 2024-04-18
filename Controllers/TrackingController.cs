@@ -57,7 +57,6 @@ namespace LibraryManagementSystem.Controllers
                 .Include(br => br.Librarian)
                 .Include(br => br.Book)
                 .Include(br => br.Requester)
-
                 .ToList();
             return View(bookRequests);
         }

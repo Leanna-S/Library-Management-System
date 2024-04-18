@@ -1,10 +1,48 @@
-﻿@model List<BookRequest>
+﻿@using LibraryManagementSystem.Models.ViewModels
+@model BorrowRequestIndexViewModel
 
 <div class="text-center">
     <h1>Book Request Manager</h1>
 </div>
 
-@if(Model.Count <= 0)
+
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <h2>Sorting options</h2>
+            <form method="post" class="form-horizontal">
+                <div class="form-group mb-3">
+                    <label>Status</label>
+                    <select class="form-control" name="status" >
+                        <option value="">--Please choose an option--</option>
+                        @foreach(Constants.BookRequestStatus status in Model.Statuses)
+                        {
+                            <option value="@status" selected="@(status == ViewBag.Status)">@status</option>
+                        }
+    
+                    </select>
+                </div>
+                <div class="form-group mb-3">
+                    <label>Start Date</label>
+                    <input type="date" class="form-control" name="startDate" value="@ViewBag.StartDate" />
+                </div>
+                <div class="form-group mb-3">
+                    <label>End Date</label>
+                    <input type="date" class="form-control" name="endDate" value="@ViewBag.EndDate" />
+                </div>
+
+                <div class="form-group mb-3">
+                    <input type="text" class="form-control" name="searchQuery" placeholder="Search by user and book" value="@ViewBag.SearchQuery">
+                </div>
+                <div class="form-group text-center">
+                    <button class="btn btn-outline-dark" asp-controller="BorrowRequest" asp-action="Index">Update filters</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@if (Model.BookRequests.Count <= 0)
 {
     <p>No requests found.</p>
     return;
@@ -25,7 +63,7 @@
 
     </thead>
     <tbody>
-        @foreach (BookRequest br in Model)
+        @foreach (BookRequest br in Model.BookRequests)
         {
             <tr>
                 <td>@br.Status</td>
