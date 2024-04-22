@@ -19,7 +19,7 @@
                 <div class="form-group mb-3">
                     <label>Reason</label>
                     <input type="text" class="form-control" name="reason" placeholder="Optional: Add a reason" />
-                    <input type="hidden" name="id" value="@Model.Id" />
+                    <input type="hidden" name="bookRequestId" value="@Model.Id" />
                 </div>
                 <div class="form-group text-center">
                     <button class="btn btn-outline-dark" asp-controller="BorrowRequest" asp-action="ChangeStatus">Click To Submit</button>

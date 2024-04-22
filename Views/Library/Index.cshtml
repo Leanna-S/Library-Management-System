@@ -61,36 +61,49 @@
                         {
                             <text>You currently have this book</text>
                         }
-                        else if (Model.CurrentUserBookRequests.Any(br => br.BookId == b.Id && br.Status == Constants.BookRequestStatus.Pending))
-                        {
-                            <text>Book request pending | </text>
-                        }
                         else
                         {
                             <text>Book checked out to another user</text>
                         }
+                        @if (b.BookRequests.Any(br => br.Requester == Model.User && br.Status == Constants.BookRequestStatus.Pending))
+                        {
+                            <text> | Book request pending</text>
+                        }
+                        
 
 
                     </td>
                     <td>
                         @if (User.IsInRole(Constants.BorrowerRole) || User.IsInRole(Constants.SuperAdminRole))
                         {
-                            if (Model.CurrentUserBookRequests.Any(br => br.BookId == b.Id && br.Status == Constants.BookRequestStatus.Pending))
+                            if (b.BookRequests.Any(br => br.Requester == Model.User && br.Status == Constants.BookRequestStatus.Pending))
                             {
-                                <a asp-controller="Library" asp-action="CancelBookRequest" asp-route-id="@b.Id">Cancel Book Request</a>
+                                <form method="post" class="d-inline">
+                                    <input type="hidden" name="bookId" value="@b.Id">
+                                    <button class="btn btn-link btn-md p-0 m-0" asp-controller="Library" asp-action="CancelBookRequest">Cancel Request</button>
+                                </form>
                             }
                             else if (b.BorrowingUser?.Id != Model.User?.Id)
                             {
-                                <a asp-controller="Library" asp-action="RequestBook" asp-route-id="@b.Id">Request Book</a>
+
+                                <form method="post" class="d-inline">
+                                    <input type="hidden" name="bookId" value="@b.Id">
+                                    <button class="btn btn-link btn-md p-0 m-0" asp-controller="Library" asp-action="RequestBook">Request Book</button>
+                                </form>
                             }
                             if (User.IsInRole(Constants.SuperAdminRole) || b.BorrowingUser?.Id == Model.User?.Id)
                             {
-                                if (User.IsInRole(Constants.SuperAdminRole))
+                                if (b.BorrowingUser?.Id == Model.User?.Id)
+                                {
+                                    <a asp-controller="Library" asp-action="BookContent" asp-route-bookId="@b.Id">View content</a>
+                                }
+                                else
                                 {
                                     <text> | </text>
+                                    <a asp-controller="Library" asp-action="BookContent" asp-route-bookId="@b.Id">View content</a>
                                 }
-                                <a asp-controller="Library" asp-action="BookContent" asp-route-id="@b.Id">View content</a>
                             }
+             
               
            
                         }

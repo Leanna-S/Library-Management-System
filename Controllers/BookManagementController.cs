@@ -23,8 +23,9 @@ namespace LibraryManagementSystem.Controllers
         [HttpGet]
         public IActionResult Index(string searchQuery)
         {
+            // filter books using the search and include all needed items
             ViewBag.SearchQuery = searchQuery;
-            var viewableBooks = _context.Books.Where(b => b.Archive == null)
+            var viewableBooks = _context.Books
                 .Where(b => b.Title.Contains(searchQuery) || b.BookAuthors.Any(ba => ba.Author.Name.Contains(searchQuery)) || b.BookGenres.Any(ba => ba.Genre.Name.Contains(searchQuery)) || searchQuery == null)
                 .Include(b => b.BorrowingUser)
                 .Include(b => b.BookAuthors)
@@ -36,28 +37,31 @@ namespace LibraryManagementSystem.Controllers
             return View(viewableBooks);
         }
 
-        public IActionResult ReturnBook(int id)
+        public IActionResult ReturnBook(int bookId)
         {
-            var book = _context.Books.Where(b => b.Id == id).FirstOrDefault();
-            string? librarianId = _userManager.GetUserId(User);
-            ApplicationUser? librarian = _context.Users.Include(u => u.BookReturns).FirstOrDefault(u => u.Id == librarianId);
-            if (book == null)
+            // double checks user is in appropriate role
+            if (!UserHelper.UserInRole(User, Constants.LibrarianRole, Constants.SuperAdminRole))
             {
-                return NotFound();
+                return Forbid();
             }
+
+            // gets books and current user
+            var book = _context.Books.Where(b => b.Id == bookId).FirstOrDefault();
+            ApplicationUser? librarian = UserHelper.GetUser(User, _userManager, _context);
             if (librarian == null)
             {
                 return Forbid();
             }
-            if (!User.IsInRole(Constants.LibrarianRole) && !User.IsInRole(Constants.SuperAdminRole))
+            if (book == null)
             {
-                return Forbid();
+                return NotFound();
             }
             if (book.BorrowingUser == null)
             {
                 return Forbid("Cannot return a book that is not borrowed");
             }
 
+            // creates book return
             BookReturn bookReturn = new BookReturn()
             {
                 Book = book,
@@ -66,6 +70,7 @@ namespace LibraryManagementSystem.Controllers
                 TimeOfReturn = DateTime.UtcNow,
             };
             _context.BookReturns.Add(bookReturn);
+            // return book - no borrowing user
             book.BorrowingUser = null;
             _context.SaveChanges();
 
@@ -74,16 +79,12 @@ namespace LibraryManagementSystem.Controllers
 
         public IActionResult CreateBook(string title, string summary, string contents, int[] genres, int[] authors)
         {
-            string? librarianId = _userManager.GetUserId(User);
-            ApplicationUser? librarian = _context.Users.Include(u => u.BookReturns).FirstOrDefault(u => u.Id == librarianId);
-            if (librarian == null)
+            // verifies user in valid role
+            if (!UserHelper.UserInRole(User, Constants.LibrarianRole, Constants.SuperAdminRole))
             {
                 return Forbid();
             }
-            if (!User.IsInRole(Constants.LibrarianRole) && !User.IsInRole(Constants.SuperAdminRole))
-            {
-                return Forbid();
-            }
+            //creates new book
             Book book = new Book()
             {
                 Title = title,
@@ -91,6 +92,8 @@ namespace LibraryManagementSystem.Controllers
                 Contents = contents,
             };
             _context.Books.Add(book);
+
+            // create book genre entries to link book to genres
             foreach (int genreId in genres)
             {
                 Genre? genre = _context.Genres.Where(g => g.Id == genreId).FirstOrDefault();
@@ -105,6 +108,7 @@ namespace LibraryManagementSystem.Controllers
                 };
                 _context.BookGenres.Add(bookGenre);
             }
+            // create book author entries to link book to authors
             foreach (int authorId in authors)
             {
                 Author? author = _context.Authors.Where(a => a.Id == authorId).FirstOrDefault();
@@ -127,33 +131,38 @@ namespace LibraryManagementSystem.Controllers
         {
             AddBookViewModel viewModel = new AddBookViewModel()
             {
-                Authors = _context.Authors.ToList(),
-                Genres = _context.Genres.ToList(),
+                Authors = [.. _context.Authors],
+                Genres = [.. _context.Genres],
             };
             return View(viewModel);
         }
 
-        public IActionResult ArchiveBook(int id)
+        public IActionResult ArchiveBook(int bookId)
         {
-            var book = _context.Books
-                .Include(b => b.BookRequests)
-                .Include(b => b.BorrowingUser)
-                .Where(b => b.Id == id)
-                .FirstOrDefault();
-            string? librarianId = _userManager.GetUserId(User);
-            ApplicationUser? librarian = _context.Users.Include(u => u.BookReturns).FirstOrDefault(u => u.Id == librarianId);
-            if (book == null)
+            //verifies user in appropriate role
+            if (!UserHelper.UserInRole(User, Constants.LibrarianRole, Constants.SuperAdminRole))
             {
-                return NotFound();
+                return Forbid();
             }
+            //gets current user
+            ApplicationUser? librarian = UserHelper.GetUser(User, _userManager, _context);
             if (librarian == null)
             {
                 return Forbid();
             }
-            if (!User.IsInRole(Constants.LibrarianRole) && !User.IsInRole(Constants.SuperAdminRole))
+
+            //get book to be archived
+            var book = _context.Books
+                .Include(b => b.BookRequests)
+                .Include(b => b.BorrowingUser)
+                .Where(b => b.Id == bookId)
+                .FirstOrDefault();
+
+            if (book == null)
             {
-                return Forbid();
+                return NotFound();
             }
+
             if (book.BorrowingUser != null)
             {
                 return Forbid("Cannot archive book that is borrowed");
@@ -162,18 +171,21 @@ namespace LibraryManagementSystem.Controllers
             {
                 return Forbid("Book already archived");
             }
-
+            //get book requests that archive would affect
+            var bookRequests = book.BookRequests.Where(br => br.Status == Constants.BookRequestStatus.Pending).ToList();
+            //create archive
             Archive archive = new Archive()
             {
                 TimeOfArchive = DateTime.UtcNow,
                 Librarian = librarian,
-                BookRequestsAffected = book.BookRequests,
+                BookRequestsAffected = bookRequests,
                 Book = book,
             };
 
             _context.Archives.Add(archive);
-            _context.SaveChanges();
-            foreach (BookRequest br in book.BookRequests)
+
+            //update all book requests to denied if status is pending
+            foreach (BookRequest br in bookRequests)
             {
                 br.Status = Constants.BookRequestStatus.Denied;
                 br.TimeOfStatusUpdate = DateTime.UtcNow;
@@ -187,26 +199,25 @@ namespace LibraryManagementSystem.Controllers
         }
 
         [Authorize(Roles = $"{Constants.SuperAdminRole}")]
-        public IActionResult UnarchiveBook(int id)
+        public IActionResult UnarchiveBook(int bookId)
         {
+            // verifies user in appropriate role
+            if (!UserHelper.UserInRole(User, Constants.SuperAdminRole))
+            {
+                return Forbid();
+            }
+
+            //get book to unarchive
             var book = _context.Books
                 .Include(b => b.Archive)
-                .Where(b => b.Id == id)
+                .Where(b => b.Id == bookId)
                 .FirstOrDefault();
-            string? superAdminId = _userManager.GetUserId(User);
-            ApplicationUser? superAdmin = _context.Users.Include(u => u.BookReturns).FirstOrDefault(u => u.Id == superAdminId);
+
             if (book == null)
             {
                 return NotFound();
             }
-            if (superAdmin == null)
-            {
-                return Forbid();
-            }
-            if (!User.IsInRole(Constants.SuperAdminRole))
-            {
-                return Forbid();
-            }
+
             if (book.BorrowingUser != null)
             {
                 return BadRequest("Cannot archive book that is borrowed");
@@ -216,19 +227,20 @@ namespace LibraryManagementSystem.Controllers
                 return BadRequest("Book not archived");
             }
 
+            //remove the archive
             _context.Archives.Remove(book.Archive);
             _context.SaveChanges();
             return RedirectToAction(nameof(Index));
         }
 
-        public IActionResult History(int id)
+        public IActionResult History(int bookId)
         {
             var book = _context.Books
                 .Include(b => b.BookReturns)
                 .ThenInclude(br => br.BorrowingUser)
                 .Include(b => b.BookRequests)
                 .ThenInclude(br => br.Requester)
-                .FirstOrDefault(b => b.Id == id);
+                .FirstOrDefault(b => b.Id == bookId);
             return View(book);
         }
     }

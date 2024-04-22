@@ -88,8 +88,11 @@
                 <td>
                     @if (br.Status == Constants.BookRequestStatus.Pending)
                     {
-     
-                        <a asp-controller="BorrowRequest" asp-action="UpdateRequestStatus" asp-route-id="@br.Id">Update Request Status</a>
+
+                        <form method="post" class="d-inline">
+                            <input type="hidden" name="bookRequestId" value="@br.Id">
+                            <button class="btn btn-link btn-md p-0 m-0" asp-controller="BorrowRequest" asp-action="UpdateRequestStatus">Update Status</button>
+                        </form>
                     }
                     else
                     {

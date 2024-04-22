@@ -20,87 +20,100 @@ namespace LibraryManagementSystem.Controllers
             _userManager = userManager;
         }
 
+        [HttpPost]
         [Authorize(Roles = $"{Constants.BorrowerRole},{Constants.SuperAdminRole}")]
-        public IActionResult CancelBookRequest(int id)
+        public IActionResult CancelBookRequest(int bookId)
         {
-            string? userId = _userManager.GetUserId(User);
-            ApplicationUser? user = _context.Users.Include(u => u.BookReturns).FirstOrDefault(u => u.Id == userId);
-
-            Book? book = _context.Books.FirstOrDefault(b => b.Id == id);
+            //get current user
+            ApplicationUser? user = UserHelper.GetUser(User, _userManager, _context);
             if (user == null)
             {
                 return Forbid();
             }
+            if (!UserHelper.UserInRole(User, Constants.BorrowerRole, Constants.SuperAdminRole))
+            {
+                return Forbid();
+            }
+
+            //get book
+            Book? book = _context.Books.FirstOrDefault(b => b.Id == bookId);
+
             if (book == null)
             {
                 return NotFound();
             }
             if (book.BorrowingUser == user)
             {
-                return Forbid("Can't cancel a book that is already checked out to you");
+                return BadRequest("Can't cancel a book that is already checked out to you");
             }
-            if (!User.IsInRole(Constants.BorrowerRole) && !User.IsInRole(Constants.SuperAdminRole))
-            {
-                return Forbid();
-            }
+
             if (book.Archive != null)
             {
-                return Forbid("Book archived, cannot change status");
+                return BadRequest("Book archived, cannot change status");
             }
-            var requests = _context.BookRequests.Where(br => br.RequesterId == user.Id && br.BookId == book.Id && br.Status == Constants.BookRequestStatus.Pending);
 
-            if (!requests.Any())
+            // get book request on book from user that is pending
+            var request = _context.BookRequests.FirstOrDefault(br => br.RequesterId == user.Id && br.BookId == book.Id && br.Status == Constants.BookRequestStatus.Pending);
+
+            if (request == null)
             {
-                return NotFound("No request found");
+                return NotFound("No requests found");
             }
-            foreach (var request in requests)
-            {
-                request.Status = Constants.BookRequestStatus.Cancelled;
-                request.TimeOfStatusUpdate = DateTime.UtcNow;
-                request.Reason = "User cancelled request";
-            }
+
+            // change status of request
+            request.Status = Constants.BookRequestStatus.Cancelled;
+            request.TimeOfStatusUpdate = DateTime.UtcNow;
+            request.Reason = "User cancelled request";
+
             _context.SaveChanges();
             return RedirectToAction(nameof(Index));
         }
 
-        public IActionResult BookContent(int id)
+        public IActionResult BookContent(int bookId)
         {
-            string? userId = _userManager.GetUserId(User);
-            ApplicationUser? user = _context.Users.Include(u => u.BookReturns).FirstOrDefault(u => u.Id == userId);
-            Book? book = _context.Books.Include(b => b.BorrowingUser).FirstOrDefault(b => b.Id == id);
+            //get current user
+            ApplicationUser? user = UserHelper.GetUser(User, _userManager, _context);
+            if (user == null)
+            {
+                return Forbid();
+            }
+
+            //get book
+            Book? book = _context.Books.Include(b => b.BorrowingUser).FirstOrDefault(b => b.Id == bookId);
             if (book == null)
             {
                 return NotFound();
             }
-            if (user == null)
-            {
-                return NotFound();
-            }
-            if (user != book.BorrowingUser && !User.IsInRole(Constants.SuperAdminRole))
+            //makes sure user is borrowing user or super admin
+            if (user != book.BorrowingUser && !UserHelper.UserInRole(User, Constants.SuperAdminRole))
             {
                 return Forbid();
             }
             return View(book);
         }
 
+        [HttpPost]
         [Authorize(Roles = $"{Constants.BorrowerRole},{Constants.SuperAdminRole}")]
-        public IActionResult RequestBook(int id)
+        public IActionResult RequestBook(int bookId)
         {
-            string? userId = _userManager.GetUserId(User);
-            ApplicationUser? user = _context.Users.Include(u => u.BookReturns).FirstOrDefault(u => u.Id == userId);
-
-            Book? book = _context.Books.FirstOrDefault(b => b.Id == id);
+            // gets current user
+            ApplicationUser? user = UserHelper.GetUser(User, _userManager, _context);
             if (user == null)
             {
                 return Forbid();
             }
+            //makes sure user in right role
+            if (!UserHelper.UserInRole(User, Constants.BorrowerRole, Constants.SuperAdminRole))
+            {
+                return Forbid();
+            }
+
+            //gets book
+            Book? book = _context.Books.FirstOrDefault(b => b.Id == bookId);
+
             if (book == null)
             {
                 return NotFound();
-            }
-            if (!User.IsInRole(Constants.BorrowerRole) && !User.IsInRole(Constants.SuperAdminRole))
-            {
-                return Forbid();
             }
             if (book.BorrowingUser == user)
             {
@@ -111,11 +124,13 @@ namespace LibraryManagementSystem.Controllers
                 return BadRequest("Book archived, cannot request book");
             }
 
+            //checks if user has any other pending request for current book
             if (_context.BookRequests.Any(br => br.RequesterId == user.Id && br.BookId == book.Id && br.Status == Constants.BookRequestStatus.Pending))
             {
                 return Conflict("Request already made for book");
             }
 
+            // create request
             BookRequest request = new()
             {
                 Status = Constants.BookRequestStatus.Pending,
@@ -131,7 +146,9 @@ namespace LibraryManagementSystem.Controllers
         [Authorize(Roles = $"{Constants.BorrowerRole},{Constants.SuperAdminRole}")]
         public IActionResult UserBookRequests()
         {
-            string? userId = _userManager.GetUserId(User);
+            //get requests from current user
+            string? userId = UserHelper.GetUserId(User, _userManager);
+
             var bookRequests = _context.BookRequests
                 .Include(br => br.Book)
                 .Include(br => br.Requester)
@@ -143,6 +160,7 @@ namespace LibraryManagementSystem.Controllers
         [HttpGet]
         public IActionResult Index(string? searchQuery)
         {
+            //get books that pass search
             var viewableBooks = _context.Books.Where(b => b.Archive == null)
                 .Where(b => searchQuery == null || b.Title.Contains(searchQuery) || b.BookAuthors.Any(ba => ba.Author.Name.Contains(searchQuery)) || b.BookGenres.Any(ba => ba.Genre.Name.Contains(searchQuery)))
                 .Include(b => b.BorrowingUser)
@@ -151,18 +169,20 @@ namespace LibraryManagementSystem.Controllers
                 .Include(b => b.BookGenres)
                 .ThenInclude(g => g.Genre)
                 .Include(b => b.Archive)
+                .Include(b => b.BookRequests)
+                .ThenInclude(br => br.Requester)
                 .ToList();
-            ViewBag.SearchQuery = searchQuery;
-            string? userId = _userManager.GetUserId(User);
-            var user = _context.Users.Include(u => u.BookRequests).FirstOrDefault(u => u.Id == userId);
 
-            var currentUserBookRequests = user?.BookRequests?.ToList();
+            //get default value for search
+            ViewBag.SearchQuery = searchQuery;
+
+            //get user
+            ApplicationUser? user = UserHelper.GetUser(User, _userManager, _context);
 
             LibraryIndexViewModel viewModel = new LibraryIndexViewModel()
             {
                 Books = viewableBooks,
-                User = user,
-                CurrentUserBookRequests = currentUserBookRequests ?? new List<BookRequest>(),
+                User = user
             };
 
             return View(viewModel);

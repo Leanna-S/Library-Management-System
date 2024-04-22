@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace LibraryManagementSystem.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20240416144502_AddBookRequestsToArchive")]
-    partial class AddBookRequestsToArchive
+    [Migration("20240422142744_AddArchiveToBookRequests")]
+    partial class AddArchiveToBookRequests
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -536,22 +536,24 @@ namespace LibraryManagementSystem.Data.Migrations
                 {
                     b.HasOne("LibraryManagementSystem.Models.Archive", "Archive")
                         .WithMany("BookRequestsAffected")
-                        .HasForeignKey("ArchiveId");
+                        .HasForeignKey("ArchiveId")
+                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.HasOne("LibraryManagementSystem.Models.Book", "Book")
                         .WithMany("BookRequests")
                         .HasForeignKey("BookId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.HasOne("LibraryManagementSystem.Models.ApplicationUser", "Librarian")
                         .WithMany("LibrarianBookRequests")
-                        .HasForeignKey("LibrarianId");
+                        .HasForeignKey("LibrarianId")
+                        .OnDelete(DeleteBehavior.NoAction);
 
                     b.HasOne("LibraryManagementSystem.Models.ApplicationUser", "Requester")
                         .WithMany("BookRequests")
                         .HasForeignKey("RequesterId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.Navigation("Archive");

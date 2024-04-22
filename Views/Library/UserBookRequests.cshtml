@@ -17,6 +17,7 @@
             <th>Book</th>
             <th>Time of request</th>
             <th>Reason</th>
+            <th>Action(s)</th>
         </tr>
 
     </thead>
@@ -31,6 +32,15 @@
                     @if (br.Reason != null)
                     {
                         @br.Reason
+                    }
+                </td>
+                <td>
+                    @if (br.Status == Constants.BookRequestStatus.Pending)
+                    {
+                    <form method="post" class="d-inline">
+                        <input type="hidden" name="bookId" value="@br.Book.Id">
+                        <button class="btn btn-link btn-md p-0 m-0" asp-controller="Library" asp-action="CancelBookRequest">Cancel Request</button>
+                    </form>
                     }
                 </td>
            

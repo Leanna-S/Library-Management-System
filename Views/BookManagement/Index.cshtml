@@ -68,19 +68,19 @@
                 <td>
                     @if (b.BorrowingUser != null)
                     {
-                        <a asp-controller="BookManagement" asp-action="ReturnBook" asp-route-id="@b.Id">Return Book</a>
+                        <a asp-controller="BookManagement" asp-action="ReturnBook" asp-route-bookId="@b.Id">Return Book</a>
                     }
                     else if (b.Archive == null)
                     {
-                        <a asp-controller="BookManagement" asp-action="ArchiveBook" asp-route-id="@b.Id">Archive Book</a>
+                        <a asp-controller="BookManagement" asp-action="ArchiveBook" asp-route-bookId="@b.Id">Archive Book</a>
                     }
                     else if (User.IsInRole(Constants.SuperAdminRole) && b.Archive != null)
                     {
-                        <a asp-controller="BookManagement" asp-action="UnarchiveBook" asp-route-id="@b.Id">Unarchive Book</a>
+                        <a asp-controller="BookManagement" asp-action="UnarchiveBook" asp-route-bookId="@b.Id">Unarchive Book</a>
                     }
                 </td>
                 <td>
-                    <a asp-controller="BookManagement" asp-action="History" asp-route-id="@b.Id">History</a>
+                    <a asp-controller="BookManagement" asp-action="History" asp-route-bookId="@b.Id">History</a>
                 </td>
             </tr>
         }

@@ -11,7 +11,7 @@
         <div class="col-md-6">
             <form method="post" class="form-horizontal" 
             runat="server"
-            onsubmit=@(Model.IsCurrentUser ?? false ? "return confirm('Are you sure you want to remove a role from yourself? Signout/in to apply changes.')" : "")>
+            onsubmit=@(Model.IsCurrentUser ?? false ? "return confirm('Are you sure you want to remove a role from yourself? This action is dangerous!!')" : string.Empty)>
             
                 <div class="form-group mb-3">
                     <label>Role</label>
@@ -30,7 +30,7 @@
                     <input type="hidden" name="id" id="userId" value="@Model.User.Id" />
                 </div>
                 <div class="form-group text-center">
-                    <button class="btn btn-outline-dark" asp-controller="RoleManagement" asp-action="RemoveRole">Click To Submit</button>
+                    <button class="btn btn-outline-dark" asp-controller="RoleManagement" asp-action="RemoveUserFromRole">Click To Submit</button>
                 </div>
             </form>
         </div>

@@ -23,9 +23,21 @@
 
                     @if ((!vm.Roles.Contains(Constants.AdminRole) && !vm.Roles.Contains(Constants.SuperAdminRole)) || User.IsInRole(Constants.SuperAdminRole))
                     {
-                        <a asp-controller="RoleManagement" asp-action="AddRole" asp-route-id="@vm.User.Id">Add Role</a>
-                        <text> | </text>
-                        <a asp-controller="RoleManagement" asp-action="RemoveRole" asp-route-id="@vm.User.Id">Remove Role</a>
+                        <div class="d-inline">
+                            <div class="d-inline">
+                                <form method="post" class="d-inline">
+                                    <input type="hidden" name="userId" value="@vm.User.Id">
+                                    <button  class="btn btn-link btn-md p-0 m-0" asp-controller="RoleManagement" asp-action="GetRoleToAdd">Add Role</button>
+                                </form>
+                                <text> | </text>
+                                <form method="post" class="d-inline">
+                                    <input type="hidden" name="userId" value="@vm.User.Id">
+                                    <button class="btn btn-link btn-md p-0 m-0" asp-controller="RoleManagement" asp-action="GetRoleToRemove">Remove Role</button>
+                                </form>
+                            </div>
+                        </div>
+
+
                     } 
             </tr>
         }

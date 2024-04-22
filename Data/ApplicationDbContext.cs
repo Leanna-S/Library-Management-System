@@ -109,22 +109,26 @@ namespace LibraryManagementSystem.Data
                 .HasOne(br => br.Book)
                 .WithMany(b => b.BookRequests)
                 .HasForeignKey(br => br.BookId)
-                .IsRequired(true);
+                .IsRequired(true)
+                .OnDelete(DeleteBehavior.NoAction);
             builder.Entity<BookRequest>()
                 .HasOne(br => br.Librarian)
                 .WithMany(u => u.LibrarianBookRequests)
                 .HasForeignKey(br => br.LibrarianId)
-                .IsRequired(false);
+                .IsRequired(false)
+                .OnDelete(DeleteBehavior.NoAction);
             builder.Entity<BookRequest>()
                 .HasOne(br => br.Requester)
                 .WithMany(u => u.BookRequests)
                 .HasForeignKey(br => br.RequesterId)
-                .IsRequired(true);
+                .IsRequired(true)
+                .OnDelete(DeleteBehavior.NoAction);
             builder.Entity<BookRequest>()
                 .HasOne(br => br.Archive)
                 .WithMany(u => u.BookRequestsAffected)
                 .HasForeignKey(br => br.ArchiveId)
-                .IsRequired(false);
+                .IsRequired(false)
+                .OnDelete(DeleteBehavior.SetNull);
             builder.Entity<BookRequest>()
                 .HasKey(br => br.Id);
         }

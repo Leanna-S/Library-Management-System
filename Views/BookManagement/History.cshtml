@@ -4,6 +4,10 @@
     <h1>Book History</h1>
 </div>
 
+<div class="text-center">
+    <h3>Book Requests</h3>
+</div>
+
 @if (Model.BookRequests.Count <= 0)
 {
     <p>No book requests</p>
@@ -35,7 +39,9 @@
         </tbody>
     </table>
 }
-
+<div class="text-center">
+    <h3>Book Returns</h3>
+</div>
 @if (Model.BookReturns.Count <= 0)
 {
     <p>No book returns</p>
